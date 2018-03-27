@@ -5,11 +5,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace GherkinTools.VisualStudio
 {
-    /// <summary>
-    /// Classifier provider. It adds the classifier to the set of classifiers.
-    /// </summary>
+    /// <summary>Classifier provider. It adds the classifier to the set of classifiers</summary>
     [Export(typeof(IClassifierProvider))]
-    [ContentType("gherkinformat")] // This classifier applies to all text files.
+    [ContentType(FileAndContentTypes.GherkinFormat)]
     internal class GherkinClassifierProvider : IClassifierProvider
     {
         // Disable "Field is never assigned to..." compiler's warning. Justification: the field is assigned by MEF.
