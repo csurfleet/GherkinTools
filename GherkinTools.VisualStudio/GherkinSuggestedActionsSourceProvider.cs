@@ -10,7 +10,7 @@ namespace GherkinTools.VisualStudio
     [Export(typeof(ISuggestedActionsSourceProvider))]
     [Name("Gherkin Suggested Actions")]
     [ContentType(FileAndContentTypes.GherkinFormat)]
-    internal class SuggestedActionsSourceProvider
+    internal class TestSuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         [Import(typeof(ITextStructureNavigatorSelectorService))]
         internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
@@ -18,9 +18,10 @@ namespace GherkinTools.VisualStudio
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
         {
             if (textBuffer == null && textView == null)
+            {
                 return null;
-
-            return new SuggestedActionsSource(this, textView, textBuffer);
+            }
+            return new TestSuggestedActionsSource(this, textView, textBuffer);
         }
     }
 }

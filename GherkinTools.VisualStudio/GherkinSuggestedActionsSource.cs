@@ -6,19 +6,18 @@ using Microsoft.VisualStudio.Text.Operations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GherkinTools.VisualStudio
 {
-    class SuggestedActionsSource : ISuggestedActionsSource
+    class TestSuggestedActionsSource : ISuggestedActionsSource
     {
-        private readonly SuggestedActionsSourceProvider _factory;
+        private readonly TestSuggestedActionsSourceProvider _factory;
         private readonly ITextBuffer _textBuffer;
         private readonly ITextView _textView;
 
-        public SuggestedActionsSource(SuggestedActionsSourceProvider testSuggestedActionsSourceProvider, ITextView textView, ITextBuffer textBuffer)
+        public TestSuggestedActionsSource(TestSuggestedActionsSourceProvider testSuggestedActionsSourceProvider, ITextView textView, ITextBuffer textBuffer)
         {
             _factory = testSuggestedActionsSourceProvider;
             _textBuffer = textBuffer;
@@ -35,11 +34,13 @@ namespace GherkinTools.VisualStudio
 
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
-            if (TryGetLineUnderCaret(out TextExtent extent) && extent.IsSignificant)
+            TextExtent extent;
+            if (TryGetWordUnderCaret(out extent) && extent.IsSignificant)
             {
                 ITrackingSpan trackingSpan = range.Snapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
-                var copyMethodNameAction = new CopyMethodName(trackingSpan);
-                return new SuggestedActionSet[] { new SuggestedActionSet("Gherkin Category", new ISuggestedAction[] { copyMethodNameAction }, "Gherkin Actions", SuggestedActionSetPriority.Medium) };
+                var upperAction = new UpperCaseSuggestedAction(trackingSpan);
+                var lowerAction = new LowerCaseSuggestedAction(trackingSpan);
+                return new SuggestedActionSet[] { new SuggestedActionSet(new ISuggestedAction[] { upperAction, lowerAction }) };
             }
             return Enumerable.Empty<SuggestedActionSet>();
         }
@@ -48,7 +49,8 @@ namespace GherkinTools.VisualStudio
         {
             return Task.Factory.StartNew(() =>
             {
-                if (TryGetLineUnderCaret(out TextExtent extent))
+                TextExtent extent;
+                if (TryGetWordUnderCaret(out extent))
                 {
                     // don't display the tag if the extent has whitespace
                     return extent.IsSignificant;
@@ -63,7 +65,7 @@ namespace GherkinTools.VisualStudio
             return false;
         }
 
-        private bool TryGetLineUnderCaret(out TextExtent wordExtent)
+        private bool TryGetWordUnderCaret(out TextExtent wordExtent)
         {
             ITextCaret caret = _textView.Caret;
             SnapshotPoint point;
