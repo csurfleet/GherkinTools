@@ -3,7 +3,11 @@
     <Metadata>
         <Identity Id="GherkinTools.VisualStudio.4cd8c21f-988f-49f4-9c18-dbfadc1e4d48" Version="1.0" Language="en-US" Publisher="Chris Surfleet" />
         <DisplayName>GherkinTools.VisualStudio</DisplayName>
-        <Description xml:space="preserve">Tools for gherkin development</Description>
+        <Description xml:space="preserve">Tools to help when writing Gherkin (Cucumber) specifications in Visual Studio.
+
+At this stage this is simply syntax highlighting for .feature files, but additional helper tools will be added continually.</Description>
+        <MoreInfo>https://github.com/csurfleet/GherkinTools</MoreInfo>
+        <Tags>Bdd Gherkin, tdd</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0]" />

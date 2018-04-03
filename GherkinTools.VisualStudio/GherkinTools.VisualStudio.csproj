@@ -47,13 +47,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Actions\CopyToMethodNameAction.cs" />
-    <Compile Include="BulbTest.cs" />
     <Compile Include="FileAndContentTypes.cs" />
     <Compile Include="GherkinClassifier.cs" />
     <Compile Include="GherkinClassifierProvider.cs" />
-    <Compile Include="GherkinSuggestedActionsSource.cs" />
-    <Compile Include="GherkinSuggestedActionsSourceProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
