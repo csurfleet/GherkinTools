@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
@@ -9,14 +11,17 @@ namespace GherkinTools.VisualStudio
     /// <summary>Classifier that classifies all text as an instance of the "GherkinClassifier" classification type.</summary>
     internal class GherkinClassifier : IClassifier
     {
-        /// <summary>Classification type.</summary>
-        private readonly IClassificationType classificationType;
+        private readonly IClassificationType _keywordClassification;
+        private readonly IClassificationType _featureTitleClassification;
+        private static Regex _keywordRegex;
+        private static Regex _featureTitleRegex;
 
         /// <summary>Initializes a new instance of the <see cref="GherkinClassifier"/> class.</summary>
         /// <param name="registry">Classification registry.</param>
         internal GherkinClassifier(IClassificationTypeRegistryService registry)
         {
-            classificationType = registry.GetClassificationType(GherkinClassifierFormat.Name);
+            _keywordClassification = registry.GetClassificationType(PredefinedClassificationTypeNames.Keyword);
+            _featureTitleClassification = registry.GetClassificationType(PredefinedClassificationTypeNames.String);
         }
 
         #region IClassifier
@@ -31,13 +36,15 @@ namespace GherkinTools.VisualStudio
         /// </remarks>
         public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged;
 
-        private static Regex _keywordRegex;
+#pragma warning restore 67
 
         private Regex KeywordRegex
             => _keywordRegex ??
             (_keywordRegex = new Regex(@"^\s*(Feature:|FEATURE:|Scenario:|SCENARIO:|Given|GIVEN|When|WHEN|Then|THEN|And|AND)\s+"));
 
-#pragma warning restore 67
+        private Regex FeatureTitleRegex
+            => _featureTitleRegex ??
+            (_featureTitleRegex = new Regex(@"^\s*F(eature|EATURE):([^$\r\n]+)[$\r\n]"));
 
         /// <summary>Gets all the <see cref="ClassificationSpan"/> objects that intersect with the given range of text./summary>
         /// <remarks>
@@ -47,23 +54,14 @@ namespace GherkinTools.VisualStudio
         /// <param name="span">The span currently being classified.</param>
         /// <returns>A list of ClassificationSpans that represent spans identified to be of this classification.</returns>
         public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span)
-        {
-            var result = new List<ClassificationSpan>();
+            => GetClassificationSpansForRegex(span, KeywordRegex, 1, _keywordClassification)
+                .Concat(GetClassificationSpansForRegex(span, FeatureTitleRegex, 2, _featureTitleClassification))
+                .ToList();
 
-            var text = span.GetText();
-            var match = KeywordRegex.Match(text);
-
-            while (match.Success)
-            {
-                result.Add(new ClassificationSpan(
-                    new SnapshotSpan(span.Snapshot, new Span(span.Start + match.Groups[1].Index, match.Groups[1].Length)),
-                    classificationType));
-
-                match = match.NextMatch();
-            }
-
-            return result;
-        }
+        private List<ClassificationSpan> GetClassificationSpansForRegex(SnapshotSpan span, Regex regex, byte groupIndex, IClassificationType classification)
+            => regex.Matches(span.GetText()).Cast<Match>().Select(m =>
+                new ClassificationSpan(new SnapshotSpan(span.Snapshot, new Span(span.Start + m.Groups[groupIndex].Index, m.Groups[groupIndex].Length)), classification))
+                .ToList();
 
         #endregion
     }
